@@ -52,36 +52,43 @@ public class Employee {
 	 * Jika pegawai adalah warga negara asing gaji bulanan diperbesar sebanyak 50%
 	 */
 	
-	public void setMonthlySalary(int grade) {	
-		if (grade == 1) {
-			monthlySalary = 3000000;
-			if (isForeigner) {
-				monthlySalary = (int) (3000000 * 1.5);
-			}
-		}else if (grade == 2) {
-			monthlySalary = 5000000;
-			if (isForeigner) {
-				monthlySalary = (int) (3000000 * 1.5);
-			}
-		}else if (grade == 3) {
-			monthlySalary = 7000000;
-			if (isForeigner) {
-				monthlySalary = (int) (3000000 * 1.5);
-			}
-		}
+	public void setMonthlySalary(int grade) {
+		//DuplicateCode
+		switch (grade) {
+        case 1:
+            monthlySalary = 3000000;
+            break;
+        case 2:
+            monthlySalary = 5000000;
+            break;
+        case 3:
+            monthlySalary = 7000000;
+            break;
+        default:
+            throw new IllegalArgumentException("Invalid grade: " + grade);
+	    }
+	    if (isForeigner) {
+	        monthlySalary *= 1.5;
+	    }
 	}
-	
-	public void setAnnualDeductible(int deductible) {	
-		this.annualDeductible = deductible;
+
+	private int calculateWorkingMonthsInYear() {
+	    LocalDate date = LocalDate.now();
+	    if (date.getYear() == yearJoined) {
+	        return date.getMonthValue() - monthJoined;
+	    } else {
+	        return 12;
+	    }
 	}
-	
-	public void setAdditionalIncome(int income) {	
-		this.otherMonthlyIncome = income;
+
+	public int getAnnualIncomeTax() {
+	    int workingMonths = calculateWorkingMonthsInYear();
+	    return TaxFunction.calculateTax(monthlySalary, otherMonthlyIncome, workingMonths, annualDeductible, spouseIdNumber.equals(""), childIdNumbers.size());
 	}
 	
 	public void setSpouse(String spouseName, String spouseIdNumber) {
-		this.spouseName = spouseName;
-		this.spouseIdNumber = idNumber;
+	    this.spouseName = spouseName;
+	    this.spouseIdNumber = spouseIdNumber;
 	}
 	
 	public void addChild(String childName, String childIdNumber) {
@@ -90,7 +97,7 @@ public class Employee {
 	}
 	
 	public int getAnnualIncomeTax() {
-		
+		//LongMethod
 		//Menghitung berapa lama pegawai bekerja dalam setahun ini, jika pegawai sudah bekerja dari tahun sebelumnya maka otomatis dianggap 12 bulan.
 		LocalDate date = LocalDate.now();
 		
