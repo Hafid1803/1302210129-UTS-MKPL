@@ -96,16 +96,44 @@ public class Employee {
 	}
 	
 	public int getAnnualIncomeTax() {
-		//LongMethod
-		//Menghitung berapa lama pegawai bekerja dalam setahun ini, jika pegawai sudah bekerja dari tahun sebelumnya maka otomatis dianggap 12 bulan.
-		LocalDate date = LocalDate.now();
-		
-		if (date.getYear() == yearJoined) {
-			monthWorkingInYear = date.getMonthValue() - monthJoined;
-		}else {
-			monthWorkingInYear = 12;
-		}
-		
-		return TaxFunction.calculateTax(monthlySalary, otherMonthlyIncome, monthWorkingInYear, annualDeductible, spouseIdNumber.equals(""), childIdNumbers.size());
+	//LongMethod
+	//Menghitung berapa lama pegawai bekerja dalam setahun ini, jika pegawai sudah bekerja dari tahun sebelumnya maka otomatis dianggap 12 bulan.
+	    int monthsWorked = calculateMonthsWorked();
+	    int annualIncome = calculateAnnualIncome(monthsWorked);
+	    int tax = calculateTax(annualIncome);
+	    tax = applyTaxReductions(tax);
+	    return tax;
 	}
-}
+	
+	private int calculateMonthsWorked() {
+	    LocalDate date = LocalDate.now();
+	    if (date.getYear() == yearJoined) {
+	        return date.getMonthValue() - monthJoined;
+	    } else {
+	        return 12;
+	    }
+	}
+	
+	private int calculateAnnualIncome(int monthsWorked) {
+	    return (monthlySalary + otherMonthlyIncome) * monthsWorked - annualDeductible;
+	}
+	
+	private int calculateTax(int annualIncome) {
+	    if (annualIncome < 50000000) {
+	        return (int) (0.05 * annualIncome);
+	    } else if (annualIncome < 250000000) {
+	        return (int) (0.15 * annualIncome);
+	    } else {
+	        return (int) (0.25 * annualIncome);
+	    }
+	}
+	
+	private int applyTaxReductions(int tax) {
+	    if (!spouseIdNumber.equals("")) {
+	        tax -= 5000000;
+	    }
+	    if (childIdNumbers.size() > 0) {
+	        tax -= childIdNumbers.size() * 2000000;
+	    }
+	    return tax;
+	}
