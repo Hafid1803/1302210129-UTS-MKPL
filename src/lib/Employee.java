@@ -53,19 +53,18 @@ public class Employee {
 	 */
 	
 	public void setMonthlySalary(int grade) {
-		//DuplicateCode
-		switch (grade) {
-        case 1:
-            monthlySalary = 3000000;
-            break;
-        case 2:
-            monthlySalary = 5000000;
-            break;
-        case 3:
-            monthlySalary = 7000000;
-            break;
-        default:
-            throw new IllegalArgumentException("Invalid grade: " + grade);
+	    switch (grade) {
+	        case 1:
+	            monthlySalary = 3000000;
+	            break;
+	        case 2:
+	            monthlySalary = 5000000;
+	            break;
+	        case 3:
+	            monthlySalary = 7000000;
+	            break;
+	        default:
+	            throw new IllegalArgumentException("Invalid grade: " + grade);
 	    }
 	    if (isForeigner) {
 	        monthlySalary *= 1.5;
