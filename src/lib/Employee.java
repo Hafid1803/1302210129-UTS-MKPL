@@ -1,139 +1,180 @@
 package lib;
 
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.LinkedList;
 import java.util.List;
 
 public class Employee {
 
-	private String employeeId;
-	private String firstName;
-	private String lastName;
-	private String idNumber;
-	private String address;
-	
-	private int yearJoined;
-	private int monthJoined;
-	private int dayJoined;
-	private int monthWorkingInYear;
-	
-	private boolean isForeigner;
-	private boolean gender; //true = Laki-laki, false = Perempuan
-	
-	private int monthlySalary;
-	private int otherMonthlyIncome;
-	private int annualDeductible;
-	
-	private String spouseName;
-	private String spouseIdNumber;
+    private static final int GRADE_1_SALARY = 3000000;
+    private static final int GRADE_2_SALARY = 5000000;
+    private static final int GRADE_3_SALARY = 7000000;
+    private static final double FOREIGNER_SALARY_MULTIPLIER = 1.5;
 
-	private List<String> childNames;
-	private List<String> childIdNumbers;
-	
-	public Employee(String employeeId, String firstName, String lastName, String idNumber, String address, int yearJoined, int monthJoined, int dayJoined, boolean isForeigner, boolean gender) {
-		this.employeeId = employeeId;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.idNumber = idNumber;
-		this.address = address;
-		this.yearJoined = yearJoined;
-		this.monthJoined = monthJoined;
-		this.dayJoined = dayJoined;
-		this.isForeigner = isForeigner;
-		this.gender = gender;
-		
-		childNames = new LinkedList<String>();
-		childIdNumbers = new LinkedList<String>();
-	}
-	
-	/**
-	 * Fungsi untuk menentukan gaji bulanan pegawai berdasarkan grade kepegawaiannya (grade 1: 3.000.000 per bulan, grade 2: 5.000.000 per bulan, grade 3: 7.000.000 per bulan)
-	 * Jika pegawai adalah warga negara asing gaji bulanan diperbesar sebanyak 50%
-	 */
-	
-	public void setMonthlySalary(int grade) {
-	    switch (grade) {
-	        case 1:
-	            monthlySalary = 3000000;
-	            break;
-	        case 2:
-	            monthlySalary = 5000000;
-	            break;
-	        case 3:
-	            monthlySalary = 7000000;
-	            break;
-	        default:
-	            throw new IllegalArgumentException("Invalid grade: " + grade);
-	    }
-	    if (isForeigner) {
-	        monthlySalary *= 1.5;
-	    }
-	}
+    private String employeeId;
+    private String firstName;
+    private String lastName;
+    private String idNumber;
+    private String address;
 
-	private int calculateWorkingMonthsInYear() {
-	    LocalDate date = LocalDate.now();
-	    if (date.getYear() == yearJoined) {
-	        return date.getMonthValue() - monthJoined;
-	    } else {
-	        return 12;
-	    }
-	}
+    private int yearJoined;
+    private int monthJoined;
+    private int dayJoined;
 
-	public int getAnnualIncomeTax() {
-	    int workingMonths = calculateWorkingMonthsInYear();
-	    return TaxFunction.calculateTax(monthlySalary, otherMonthlyIncome, workingMonths, annualDeductible, spouseIdNumber.equals(""), childIdNumbers.size());
-	}
-	
-	public void setSpouse(String spouseName, String spouseIdNumber) {
-	    this.spouseName = spouseName;
-	    this.spouseIdNumber = spouseIdNumber;
-	}
-	
-	public void addChild(String childName, String childIdNumber) {
-		childNames.add(childName);
-		childIdNumbers.add(childIdNumber);
-	}
-	
-	public int getAnnualIncomeTax() {
-	//LongMethod
-	//Menghitung berapa lama pegawai bekerja dalam setahun ini, jika pegawai sudah bekerja dari tahun sebelumnya maka otomatis dianggap 12 bulan.
-	    int monthsWorked = calculateMonthsWorked();
-	    int annualIncome = calculateAnnualIncome(monthsWorked);
-	    int tax = calculateTax(annualIncome);
-	    tax = applyTaxReductions(tax);
-	    return tax;
-	}
-	
-	private int calculateMonthsWorked() {
-	    LocalDate date = LocalDate.now();
-	    if (date.getYear() == yearJoined) {
-	        return date.getMonthValue() - monthJoined;
-	    } else {
-	        return 12;
-	    }
-	}
-	
-	private int calculateAnnualIncome(int monthsWorked) {
-	    return (monthlySalary + otherMonthlyIncome) * monthsWorked - annualDeductible;
-	}
-	
-	private int calculateTax(int annualIncome) {
-	    if (annualIncome < 50000000) {
-	        return (int) (0.05 * annualIncome);
-	    } else if (annualIncome < 250000000) {
-	        return (int) (0.15 * annualIncome);
-	    } else {
-	        return (int) (0.25 * annualIncome);
-	    }
-	}
-	
-	private int applyTaxReductions(int tax) {
-	    if (!spouseIdNumber.equals("")) {
-	        tax -= 5000000;
-	    }
-	    if (childIdNumbers.size() > 0) {
-	        tax -= childIdNumbers.size() * 2000000;
-	    }
-	    return tax;
-	}
+    private boolean isForeigner;
+    private Gender gender;
+
+    private int monthlySalary;
+    private int otherMonthlyIncome;
+    private int annualDeductible;
+
+    private Spouse spouse;
+    private List<Child> children;
+
+    private Employee(Builder builder) {
+        this.employeeId = builder.employeeId;
+        this.firstName = builder.firstName;
+        this.lastName = builder.lastName;
+        this.idNumber = builder.idNumber;
+        this.address = builder.address;
+        this.yearJoined = builder.yearJoined;
+        this.monthJoined = builder.monthJoined;
+        this.dayJoined = builder.dayJoined;
+        this.isForeigner = builder.isForeigner;
+        this.gender = builder.gender;
+        this.children = builder.children != null ? builder.children : new LinkedList<>();
+    }
+
+    public void setMonthlySalary(int grade) {
+        switch (grade) {
+            case 1:
+                monthlySalary = GRADE_1_SALARY;
+                break;
+            case 2:
+                monthlySalary = GRADE_2_SALARY;
+                break;
+            case 3:
+                monthlySalary = GRADE_3_SALARY;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid grade: " + grade);
+        }
+        if (isForeigner) {
+            monthlySalary *= FOREIGNER_SALARY_MULTIPLIER;
+        }
+    }
+
+    public void setAnnualDeductible(int deductible) {
+        this.annualDeductible = deductible;
+    }
+
+    public void setAdditionalIncome(int income) {
+        this.otherMonthlyIncome = income;
+    }
+
+    public void setSpouse(String spouseName, String spouseIdNumber) {
+        this.spouse = new Spouse(spouseName, spouseIdNumber);
+    }
+
+    public void addChild(String childName, String childIdNumber) {
+        children.add(new Child(childName, childIdNumber));
+    }
+
+    public int getAnnualIncomeTax() {
+        int monthsWorkedInYear = calculateMonthsWorkedInYear();
+        boolean hasSpouse = spouse != null;
+        return TaxFunction.calculateTax(monthlySalary, otherMonthlyIncome, monthsWorkedInYear, annualDeductible, hasSpouse, children.size());
+    }
+
+    private int calculateMonthsWorkedInYear() {
+        LocalDate currentDate = LocalDate.now();
+        if (currentDate.getYear() == yearJoined) {
+            return currentDate.getMonthValue() - monthJoined;
+        } else {
+            return 12;
+        }
+    }
+
+    public enum Gender {
+        MALE, FEMALE
+    }
+
+    public static class Spouse {
+        private String name;
+        private String idNumber;
+
+        public Spouse(String name, String idNumber) {
+            this.name = name;
+            this.idNumber = idNumber;
+        }
+    }
+
+    public static class Child {
+        private String name;
+        private String idNumber;
+
+        public Child(String name, String idNumber) {
+            this.name = name;
+            this.idNumber = idNumber;
+        }
+    }
+
+    public static class Builder {
+        private String employeeId;
+        private String firstName;
+        private String lastName;
+        private String idNumber;
+        private String address;
+
+        private int yearJoined;
+        private int monthJoined;
+        private int dayJoined;
+
+        private boolean isForeigner;
+        private Gender gender;
+
+        private List<Child> children;
+
+        public Builder(String employeeId, String firstName, String lastName, String idNumber, String address) {
+            this.employeeId = employeeId;
+            this.firstName = firstName;
+            this.lastName = lastName;
+            this.idNumber = idNumber;
+            this.address = address;
+        }
+
+        public Builder yearJoined(int yearJoined) {
+            this.yearJoined = yearJoined;
+            return this;
+        }
+
+        public Builder monthJoined(int monthJoined) {
+            this.monthJoined = monthJoined;
+            return this;
+        }
+
+        public Builder dayJoined(int dayJoined) {
+            this.dayJoined = dayJoined;
+            return this;
+        }
+
+        public Builder isForeigner(boolean isForeigner) {
+            this.isForeigner = isForeigner;
+            return this;
+        }
+
+        public Builder gender(Gender gender) {
+            this.gender = gender;
+            return this;
+        }
+
+        public Builder children(List<Child> children) {
+            this.children = children;
+            return this;
+        }
+
+        public Employee build() {
+            return new Employee(this);
+        }
+    }
+}
